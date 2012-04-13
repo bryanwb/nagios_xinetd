@@ -1,0 +1,27 @@
+#!/bin/bash
+CRIT_VAL=$2
+current_dir="$(dirname $0)"
+
+cmd=$current_dir/check_ntp_time
+
+suffix="$(hostname --domain)"
+
+if [ $suffix == "hq.un.fao.org" ]; then
+    suffix="fao.org"
+elif [ -z $suffix ]; then
+    suffix="fao.org"
+fi
+
+ntp_server1="ntp1."$suffix
+ntp_server2="ntp2."$suffix
+
+$cmd -H $ntp_server1 -c "$CRIT_VAL" -t 30
+exit_code1=$?
+$cmd -H $ntp_server2 -c "$CRIT_VAL" -t 30 
+exit_code2=$?
+
+if [ $exit_code1 -eq 0 ] || [ $exit_code2 -eq 0 ]; then
+	exit 0
+else
+	exit 2
+fi
